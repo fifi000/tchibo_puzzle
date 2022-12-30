@@ -95,7 +95,7 @@ class Game:
             self.lifted_ball = None
             return
 
-        if field := next((f for f in self.board.fields if f.check_collision(pg.mouse.get_pos(), 1.5)), None):
+        if field := next((f for f in self.board.fields if not f.ball and f.check_collision(pg.mouse.get_pos(), 1.5)), None):
             if self.board.move_ball(old_field, field):
                 self.move_sound.play()
         self.lifted_ball.clicked = False
