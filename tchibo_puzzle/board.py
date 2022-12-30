@@ -164,6 +164,10 @@ class Board:
                 return True
             return False
 
+        # prevent placing one ball onto another
+        if old_field.ball:
+            return False
+
         output = False
         # same row and 2 columns apart
         if new_field.row == old_field.row and abs(new_field.col - old_field.col) == 2:
