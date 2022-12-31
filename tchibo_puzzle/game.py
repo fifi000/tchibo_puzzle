@@ -3,6 +3,7 @@ import pickle
 from random import random
 import pygame as pg
 from tkinter import messagebox, filedialog
+from easygui import enterbox
 
 from globals import *
 from board import Board
@@ -11,18 +12,18 @@ from structures.move_tracker import MoveTracker
 
 def help_info():
     li = [
-        "h - help info",
-        "m - menu",
-        "a / left-arrow - undo",
-        "d / right-arrow - redo",
-        "c - challenge mode",
-        "r - new game",
-        "l - load game to analise",
+        "H - help info",
+        "A / left-arrow - undo",
+        "D / right-arrow - redo",
+        "C - challenge mode",
+        "R - new game",
+        "L - load game to analise",
     ]
     text = "\n".join([s for s in li])
     messagebox.askokcancel(
         title="Help",
-        message=text)
+        message=text
+    )
 
 
 class Game:
@@ -66,6 +67,17 @@ class Game:
     def reset_board(self):
         self.board = Board(self, (self.game_width, self.game_height), (self.gap, self.gap))
 
+    def get_level(self):
+        n = enterbox(
+            title="Level",
+            msg="Enter balls number [2-32]",
+            default="10"
+        )
+        try:
+            return max(int(n), 2) % len(self.board.fields) - 1
+        except:
+            return None
+
     def challenge_mode(self, level=10):
         def is_valid_move(move):
             row, col = field.row + move[0], field.col + move[1]
@@ -101,6 +113,30 @@ class Game:
         # remove generated moves form Move Tracker
         self.board.move_tracker = MoveTracker(self.board.grid)
 
+    def draw(self):
+        # self.screen.fill(WHITE)
+        self.screen.blit(self.background, (0, 0))
+        self.board.draw()
+        pg.display.flip()
+
+    def lift_ball(self):
+        if ball := next((b for b in self.board.balls if b.check_collision(pg.mouse.get_pos())), None):
+            ball.clicked = True
+            self.lifted_ball = ball
+
+    def drop_ball(self):
+        try:
+            old_field = [f for f in self.board.fields if f.ball == self.lifted_ball][0]
+        except IndexError:
+            self.lifted_ball = None
+            return
+
+        if field := next((f for f in self.board.fields if f.check_collision(pg.mouse.get_pos(), 1.5)), None):
+            if self.board.move_ball(old_field, field):
+                self.move_sound.play()
+        self.lifted_ball.clicked = False
+        self.lifted_ball = None
+
     def save_board_positions(self):
         # save only if at least half of the board is empty
         # game is not reversed
@@ -125,30 +161,6 @@ class Game:
 
         with (path / file_name).open("wb") as file:
             pickle.dump(self.board.move_tracker.positions, file)
-
-    def draw(self):
-        # self.screen.fill(WHITE)
-        self.screen.blit(self.background, (0, 0))
-        self.board.draw()
-        pg.display.flip()
-
-    def lift_ball(self):
-        if ball := next((b for b in self.board.balls if b.check_collision(pg.mouse.get_pos())), None):
-            ball.clicked = True
-            self.lifted_ball = ball
-
-    def drop_ball(self):
-        try:
-            old_field = [f for f in self.board.fields if f.ball == self.lifted_ball][0]
-        except IndexError:
-            self.lifted_ball = None
-            return
-
-        if field := next((f for f in self.board.fields if f.check_collision(pg.mouse.get_pos(), 1.5)), None):
-            if self.board.move_ball(old_field, field):
-                self.move_sound.play()
-        self.lifted_ball.clicked = False
-        self.lifted_ball = None
 
     def load_game(self):
         if path := filedialog.askopenfilename(
@@ -176,8 +188,8 @@ class Game:
                 self.drop_ball()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_r:
-                    if messagebox.askyesno("Restart Game", "Do you really want to restart?"):
-                        self.new_game()
+                    # if messagebox.askyesno("Restart Game", "Do you really want to restart?"):
+                    self.new_game()
                 if event.key in [pg.K_LEFT, pg.K_a]:
                     self.board.undo_move()
                 if event.key in [pg.K_RIGHT, pg.K_d]:
@@ -185,7 +197,8 @@ class Game:
                 if event.key == pg.K_l:
                     self.load_game()
                 if event.key == pg.K_c:
-                    self.challenge_mode()
+                    if level := self.get_level():
+                        self.challenge_mode(level)
                 if event.key == pg.K_h:
                     help_info()
 
