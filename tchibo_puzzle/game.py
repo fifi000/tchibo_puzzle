@@ -1,12 +1,12 @@
 import datetime
 import pickle
 from random import random
-
 import pygame as pg
 from tkinter import messagebox, filedialog
 
 from globals import *
 from board import Board
+from structures.move_tracker import MoveTracker
 
 
 def help_info():
@@ -86,16 +86,20 @@ class Game:
         self.new_game(save=False)
         self.challenge = True
 
+        # clear board
         for field in self.board.fields:
             field.ball = None
         self.board.set_ball_center()
 
+        # choose random ball
+        # if has valid move -> move there
         for _ in range(level):
-            # choose random ball
             for field in sorted([f for f in self.board.fields if f.ball], key=lambda x: random()):
-                # check if it has any valid move
                 if try_move():
                     break
+
+        # remove generated moves form Move Tracker
+        self.board.move_tracker = MoveTracker(self.board.grid)
 
     def save_board_positions(self):
         # save only if at least half of the board is empty
