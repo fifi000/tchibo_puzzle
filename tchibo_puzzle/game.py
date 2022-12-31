@@ -1,29 +1,81 @@
 import datetime
 import pickle
+from random import random
+
 import pygame as pg
 from tkinter import messagebox, filedialog
 
-from settings import *
+from globals import *
 from board import Board
 
 
 class Game:
     def __init__(self):
         pg.init()
+        self.screen = pg.display.set_mode(RESOLUTION)
+        pg.display.set_caption(CAPTION)
 
+        self.nav_bar = None
         self.board = None
         self.lifted_ball = None
-
-        self.screen = pg.display.set_mode(RESOLUTION)
+        self.reversed = None
+        self.loaded = None
+        self.challenge = None
 
         self.background = Game.get_texture(ASSETS_PATH / "background.png", RESOLUTION)
         self.move_sound = pg.mixer.Sound(ASSETS_PATH / "move_sound.mp3")
 
-        self.new_game()
+        self.gap = GAP
+        self.game_width, self.game_height = WIDTH - 2*self.gap, HEIGHT - 2*self.gap
+
+        self.new_game(save=False)
 
     @staticmethod
     def get_texture(path, size):
         return pg.transform.scale(pg.image.load(path).convert_alpha(), size)
+
+    def new_game(self, save=True):
+        # add method to reset board without whole new game
+        self.lifted_ball = None
+        if self.board and save:
+            self.save_board_positions()
+
+        self.reversed = False
+        self.loaded = False
+        self.challenge = False
+
+        # board setup
+        height = self.game_height
+        self.board = Board(self, (self.game_width, height), (self.gap, self.gap))
+
+    def challenge_mode(self, level=10):
+        def is_valid_move(move):
+            row, col = field.row + move[0], field.col + move[1]
+            # grid boundary
+            if 0 <= row <= len(self.board.grid) - 1 and 0 <= col <= len(self.board.grid[0]) - 1:
+                # validate field
+                if (new_field := self.board.grid[row][col]) and not new_field.ball and self.board.move_ball(field, new_field, reversed_move=True):
+                    return True
+            return False
+
+        def try_move():
+            # moves -> [left, right, up, down]
+            for move in sorted([(0, -2), (0, 2), (2, 0), (-2, 0)], key=lambda x: random()):
+                if is_valid_move(move):
+                    return True
+            return False
+
+        self.new_game(save=False)
+        for field in self.board.fields:
+            field.ball = None
+        self.board.set_ball_center()
+
+        for _ in range(level):
+            # choose random ball
+            for field in sorted([f for f in self.board.fields if f.ball], key=lambda x: random()):
+                # check if it has any valid move
+                if try_move():
+                    break
 
     # old version
     def save_board(self):
@@ -49,7 +101,11 @@ class Game:
 
     def save_board_positions(self):
         # save only if at least half of the board is empty
-        if len(self.board.balls) > len(self.board.empty_fields):
+        # game is not reversed
+        # not challenge mode
+        if (len(self.board.balls) / len(self.board.fields) > MIN_BALLS_TO_SAVE
+                or self.reversed
+                or self.challenge):
             return
 
         # check if folder with saved games exists
@@ -60,7 +116,7 @@ class Game:
         if not (path := (GAMES_PATH / f"{datetime.date.today()}")).exists():
             path.mkdir()
 
-        # file name -> [time when game ended]([balls left]).txt
+        # _file name -> [time when game ended]([balls left]).txt
         # eg. 22_45(3).txt
         time = "_".join(str(datetime.datetime.today()).replace(".", " ").split()[1].split(":")[:-1])
         file_name = f"{time}({len(self.board.balls)}).txt"
@@ -68,17 +124,8 @@ class Game:
         with (path / file_name).open("wb") as file:
             pickle.dump(self.board.move_tracker.positions, file)
 
-    def new_game(self):
-        self.lifted_ball = None
-        if self.board:
-            self.save_board_positions()
-
-        gap = 50
-        size = WIDTH - 2 * gap, HEIGHT - 2 * gap
-        self.board = Board(self, size, (gap, gap))
-
     def draw(self):
-        # self.screen.fill(BLACK)
+        # self.screen.fill(WHITE)
         self.screen.blit(self.background, (0, 0))
         self.board.draw()
         pg.display.flip()
@@ -95,7 +142,7 @@ class Game:
             self.lifted_ball = None
             return
 
-        if field := next((f for f in self.board.fields if not f.ball and f.check_collision(pg.mouse.get_pos(), 1.5)), None):
+        if field := next((f for f in self.board.fields if f.check_collision(pg.mouse.get_pos(), 1.5)), None):
             if self.board.move_ball(old_field, field):
                 self.move_sound.play()
         self.lifted_ball.clicked = False
@@ -119,8 +166,6 @@ class Game:
                     self.board.undo_move()
                 if event.key in [pg.K_RIGHT, pg.K_d]:
                     self.board.redo_move()
-                if event.key == pg.K_m:
-                    print("menu")
                 if event.key == pg.K_l:
                     path = filedialog.askopenfilename(
                         title="File to load",
@@ -131,9 +176,13 @@ class Game:
                         try:
                             file = open(path, "rb")
                             self.new_game()
+                            self.loaded = True
                             self.board.load_board(pickle.load(file))
                         except IOError:
-                            messagebox.showerror("File Error", "Could not open this file.")
+                            messagebox.showerror("File Error", "Could not open this _file.")
+                if event.key == pg.K_c:
+                    self.challenge = True
+                    self.challenge_mode()
 
     def get_grids_from_file(self, path):
         try:

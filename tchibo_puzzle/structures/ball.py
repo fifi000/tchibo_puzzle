@@ -1,13 +1,11 @@
-import math
-
 import pygame as pg
 
-from circle_object import CircleObject
-from settings import BLACK
+from base_objects.circle_object import CircleObject
+from globals import BLACK
 
 
 class Ball(CircleObject):
-    def __init__(self, pos, color=BLACK, img=None):
+    def __init__(self, pos=(0, 0), color=BLACK, img=None):
         super(Ball, self).__init__(pos)
         self.clicked = False
         self.color = color

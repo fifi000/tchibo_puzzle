@@ -1,9 +1,10 @@
-import pygame as pg
 from random import choice
 
-from settings import *
-from ball import Ball
-from circle_object import CircleObject
+from globals import *
+from structures.ball import Ball
+from base_objects.circle_object import CircleObject
+from structures.move_tracker import MoveTracker
+from structures.field import Field
 
 _ = None
 field_grid = [
@@ -26,70 +27,6 @@ def show_grid(g):
     print()
 
 
-class MoveTracker:
-    def __init__(self, init_grid):
-        self.moves = [MoveTracker.copy_grid(init_grid)]
-        self.index_tracker = 0
-
-        # [(old_field, new_field), ...]
-        self.positions = []
-
-    def add_move(self, grid):
-        grid = MoveTracker.copy_grid(grid)
-        while self.index_tracker != len(self.moves) - 1:
-            self.moves.pop()
-            self.positions.pop()
-        self.moves.append(grid)
-        self.index_tracker += 1
-
-    def undo_move(self):
-        if self.index_tracker > 0:
-            self.index_tracker -= 1
-            return MoveTracker.copy_grid(self.moves[self.index_tracker])
-
-    def redo_move(self):
-        if self.index_tracker != len(self.moves) - 1:
-            self.index_tracker += 1
-            return MoveTracker.copy_grid(self.moves[self.index_tracker])
-
-    @staticmethod
-    def copy_grid(grid):
-        return [[cell.__copy__() if cell else cell for cell in row] for row in grid]
-
-
-class Field(CircleObject):
-    def __init__(self, pos=(0, 0), row=0, col=0, ball=None):
-        super(Field, self).__init__(pos)
-        self.row = row
-        self.col = col
-        self.ball = ball
-
-    def draw(self):
-        # pg.draw.circle(Field.game.screen, WHITE, self.pos, self.radius)
-
-        # draw transparent circle
-        circle_color = WHITE if not self.ball else GRAY
-        surface = pg.Surface((self.radius*2, self.radius*2))
-        surface.set_colorkey((0, 0, 0))
-        surface.set_alpha(100)
-        pg.draw.circle(surface, circle_color, (self.radius, self.radius), self.radius)
-        self.game.screen.blit(surface, (self.x - self.radius, self.y - self.radius))
-
-        if self.ball:
-            self.ball.draw()
-
-    def add_ball(self, ball):
-        ball.pos = self.pos
-        self.ball = ball
-
-    def __repr__(self):
-        return "1" if self.ball else "_"
-
-    def __copy__(self):
-        ball = self.ball.__copy__() if self.ball else None
-        return Field(self.pos, self.row, self.col, ball)
-
-
 class Board:
     def __init__(self, game, size=RESOLUTION, pos=(0, 0)):
         self.game = game
@@ -101,7 +38,7 @@ class Board:
         self.rows = len(self.grid)
         self.cols = len(self.grid[0])
 
-        self.radius = self.height / (self.rows*3 - 1)
+        self.radius = self.width / (self.cols*3 - 1)
         self.diameter = 2 * self.radius
 
         self.ball_images = [
@@ -111,7 +48,11 @@ class Board:
 
         CircleObject.set_globals(self.radius, self.game)
         self.grid = self.__get_fields()
-        self.__set_balls()
+
+        if not game.reversed:
+            self.set_balls()
+        else:
+            self.set_ball_center()
 
         self.move_tracker = MoveTracker(self.grid)
 
@@ -127,10 +68,15 @@ class Board:
     def empty_fields(self):
         return [f for f in self.fields if not f.ball]
 
-    def __set_balls(self):
+    def set_balls(self):
         for i, field in enumerate(self.fields):
             if i == len(self.fields) // 2:  # skip center field
                 continue
+            field.ball = Ball(field.pos, img=choice(self.ball_images))
+            # field.ball = Ball(field.pos, color=BLACK)
+
+    def set_ball_center(self):
+        if field := next((field for i, field in enumerate(self.fields) if i == len(self.fields) // 2), None):
             field.ball = Ball(field.pos, img=choice(self.ball_images))
 
     def __get_fields(self) -> list[list[Field]]:
@@ -155,7 +101,7 @@ class Board:
         self.move_tracker.index_tracker = 1
         self.undo_move()
 
-    def move_ball(self, old_field, new_field) -> bool:
+    def move_ball(self, old_field, new_field, reversed_move=False) -> bool:
         def handle_middle_ball(row, col):
             if (middle := self.grid[row][col]).ball:
                 middle.ball = None
@@ -164,8 +110,19 @@ class Board:
                 return True
             return False
 
+        def handle_middle_ball_reversed(row, col):
+            if not (middle := self.grid[row][col]).ball:
+                middle.add_ball(Ball(img=choice(self.ball_images)))
+                new_field.add_ball(old_field.ball)
+                old_field.ball = None
+                return True
+            return False
+
+        if self.game.reversed or reversed_move:
+            handle_middle_ball = handle_middle_ball_reversed
+
         # prevent placing one ball onto another
-        if old_field.ball:
+        if new_field.ball:
             return False
 
         output = False
