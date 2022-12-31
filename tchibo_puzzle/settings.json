@@ -1,0 +1,13 @@
+{
+  "display": {
+    "width": 750,
+    "height": 750
+  },
+  "paths": {
+    "assets": "assets",
+    "savedGames": "saved_games"
+  },
+  "caption": "Tchibo Puzzle",
+  "minBallsToSave": 0.14,
+  "boardGap": 50
+}
