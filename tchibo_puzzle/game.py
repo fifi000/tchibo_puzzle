@@ -77,28 +77,6 @@ class Game:
                 if try_move():
                     break
 
-    # old version
-    def save_board(self):
-        # save only if half of the board is empty
-        if len(self.board.balls) > len(self.board.empty_fields):
-            return
-
-        # check if folder with current date exists
-        if not (path := (GAMES_PATH / f"{datetime.date.today()}")).exists():
-            path.mkdir()
-
-        filled = FILLED_FIELD
-        empty = EMPTY_FIELD
-        time = "_".join(str(datetime.datetime.today()).replace(".", " ").split()[1].split(":")[:-1])
-        with (path / f"{time}({len(self.board.balls)}).txt").open("w") as file:
-            for grid in self.board.move_tracker.moves:
-                rows = [
-                    "".join(f"{(filled if cell.ball else empty) if cell else empty:3}" for cell in row) + "\n"
-                    for row in grid
-                ]
-                file.writelines(rows)
-                file.write("\n")
-
     def save_board_positions(self):
         # save only if at least half of the board is empty
         # game is not reversed
