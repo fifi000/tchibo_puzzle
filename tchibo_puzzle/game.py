@@ -9,6 +9,22 @@ from globals import *
 from board import Board
 
 
+def help_info():
+    li = [
+        "h - help info",
+        "m - menu",
+        "a / left-arrow - undo",
+        "d / right-arrow - redo",
+        "c - challenge mode",
+        "r - new game",
+        "l - load game to analise",
+    ]
+    text = "\n".join([s for s in li])
+    messagebox.askokcancel(
+        title="Help",
+        message=text)
+
+
 class Game:
     def __init__(self):
         pg.init()
@@ -130,6 +146,20 @@ class Game:
         self.lifted_ball.clicked = False
         self.lifted_ball = None
 
+    def load_game(self):
+        if path := filedialog.askopenfilename(
+            title="File to load",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            initialdir=GAMES_PATH
+        ):
+            try:
+                with open(path, "rb") as file:
+                    self.new_game()
+                    self.loaded = True
+                    self.board.load_board(pickle.load(file))
+            except IOError:
+                messagebox.showerror("File Error", "Could not open this file.")
+
     def check_events(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -149,21 +179,11 @@ class Game:
                 if event.key in [pg.K_RIGHT, pg.K_d]:
                     self.board.redo_move()
                 if event.key == pg.K_l:
-                    path = filedialog.askopenfilename(
-                        title="File to load",
-                        filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
-                        initialdir=GAMES_PATH
-                    )
-                    if path:
-                        try:
-                            file = open(path, "rb")
-                            self.new_game()
-                            self.loaded = True
-                            self.board.load_board(pickle.load(file))
-                        except IOError:
-                            messagebox.showerror("File Error", "Could not open this _file.")
+                    self.load_game()
                 if event.key == pg.K_c:
                     self.challenge_mode()
+                if event.key == pg.K_h:
+                    help_info()
 
     def run(self):
         while True:
