@@ -45,8 +45,10 @@ class Game:
         self.challenge = False
 
         # board setup
-        height = self.game_height
-        self.board = Board(self, (self.game_width, height), (self.gap, self.gap))
+        self.reset_board()
+
+    def reset_board(self):
+        self.board = Board(self, (self.game_width, self.game_height), (self.gap, self.gap))
 
     def challenge_mode(self, level=10):
         def is_valid_move(move):
@@ -66,6 +68,8 @@ class Game:
             return False
 
         self.new_game(save=False)
+        self.challenge = True
+
         for field in self.board.fields:
             field.ball = None
         self.board.set_ball_center()
@@ -159,20 +163,7 @@ class Game:
                         except IOError:
                             messagebox.showerror("File Error", "Could not open this _file.")
                 if event.key == pg.K_c:
-                    self.challenge = True
                     self.challenge_mode()
-
-    def get_grids_from_file(self, path):
-        try:
-            with open(path) as file:
-                grids = [
-                    ["".join(row).split() for row in grid.split("\n")]
-                    for grid in file.read().split("\n\n")
-                ]
-                print(grids[0][0])
-                self.board.load_board(grids)
-        except FileNotFoundError:
-            pass
 
     def run(self):
         while True:
