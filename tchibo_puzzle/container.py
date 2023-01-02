@@ -21,6 +21,10 @@ class Container(RectObject):
     def add_item(self, item, reverse_order=False):
         pass
 
+    def add_items(self, items, reverse_order=False):
+        for item in items:
+            self.add_item(item, reverse_order)
+
     # loop through items and fire their event
     def check_collision(self, pos):
         if item := next((item for item in self.items if item.check_collision(pos)), None):

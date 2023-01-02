@@ -10,6 +10,7 @@ from board import Board
 from base_objects.button import Button
 from globals import *
 from container import VerticalContainer, HorizontalContainer
+from navigation_bar import NavigationBar
 from structures.move_tracker import MoveTracker
 
 
@@ -45,6 +46,7 @@ class Game:
         self.reversed = None
         self.loaded = None
         self.challenge = None
+        self.container = None
 
         self.background = Game.get_texture(ASSETS_PATH / "background.png", self.screen.get_size())
         self.move_sound = pg.mixer.Sound(ASSETS_PATH / "move_sound.mp3")
@@ -71,27 +73,6 @@ class Game:
             size = tuple(s/k for s in img.get_size())
         return pg.transform.scale(img, size)
 
-    def set_nav_bar(self):
-        k = 0.9
-        size = tuple(int(self.nav_bar.height * k) for _ in range(2))
-        path = ASSETS_PATH / "nav_bar_emojis"
-        right_arrow = Game.get_texture(path / "right_arrow.png", size)
-        left_arrow = pg.transform.flip(right_arrow, True, False)
-        restart = Game.get_texture(path / "restart.png", size)
-        switch_off = Game.get_texture(path / "switch_off.png", size, True)
-        menu = Game.get_texture(path / "three_dots.png", size)
-
-        temp = VerticalContainer(size=(restart.get_width(), restart.get_height() + switch_off.get_height()))
-
-        # self.nav_bar.add_item(Button(img_name=switch_off), True)
-        self.nav_bar.add_item(temp, True)
-        self.nav_bar.add_item(Button(img_name=right_arrow, action=self.board.redo_move), True)
-        self.nav_bar.add_item(Button(img_name=left_arrow, action=self.board.undo_move), True)
-        self.nav_bar.add_item(Button(img_name=menu))
-
-        temp.add_item(Button(img_name=restart, action=self.new_game))
-        temp.add_item(Button(img_name=switch_off))
-
     def new_game(self, save=True):
         self.lifted_ball = None
         if self.board and save:
@@ -101,20 +82,25 @@ class Game:
         self.loaded = False
         self.challenge = False
 
-        self.nav_bar = HorizontalContainer(
+        self.handle_screen_resize()
+
+    def set_container(self):
+        self.container = VerticalContainer(
             pos=(self.gap, self.gap/2),
+            size=(self.game_width, self.game_height),
+        )
+        self.container.gap = self.gap/2
+
+        self.nav_bar = NavigationBar(
+            self,
             size=(self.game_width, int(self.game_height*0.08))
         )
-
-        self.reset_board()
-        self.set_nav_bar()
-
-    def reset_board(self):
         self.board = Board(
             self,
-            size=(self.game_width, self.game_height - self.nav_bar.height),
-            pos=(self.nav_bar.x, self.gap*1.5)
+            size=(self.game_width, int(self.game_height*0.9))
         )
+
+        self.container.add_items((self.nav_bar, self.board))
 
     def get_level(self):
         n = enterbox(
@@ -164,22 +150,15 @@ class Game:
 
     def draw(self):
         self.screen.blit(self.background, (0, 0))
-        self.board.draw()
-        self.nav_bar.draw()
+        self.container.draw()
         pg.display.flip()
 
     def handle_screen_resize(self):
-        # navbar
-        self.nav_bar = HorizontalContainer(
-            pos=(self.gap, self.gap/2),
-            size=(self.game_width, int(self.game_height*0.08))
-        )
-        self.set_nav_bar()
+        self.set_container()
 
-        # board
-        self.board.pos = (self.nav_bar.x, self.gap*1.5)
-        self.board.size = (self.game_width, self.game_height - self.nav_bar.height)
         self.board.resize()
+        self.nav_bar.init_buttons()
+
         self.background = Game.get_texture(ASSETS_PATH / "background.png", self.screen.get_size())
 
     def lift_ball(self):

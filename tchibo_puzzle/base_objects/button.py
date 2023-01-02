@@ -14,8 +14,7 @@ class Button(RectObject):
 
     @property
     def img(self):
-        # return self.game.board.ball_images[self.img_name]
-        return self.img_name
+        return self.game.nav_bar.button_images[self.img_name]
 
     def draw(self):
         self.game.screen.blit(self.img, self.pos)
