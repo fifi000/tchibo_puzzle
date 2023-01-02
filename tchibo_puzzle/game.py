@@ -1,12 +1,13 @@
 import datetime
 import pickle
 from random import random
-import pygame as pg
 from tkinter import messagebox, filedialog
+
+import pygame as pg
 from easygui import enterbox
 
-from globals import *
 from board import Board
+from globals import *
 from structures.move_tracker import MoveTracker
 
 
@@ -29,7 +30,10 @@ def help_info():
 class Game:
     def __init__(self):
         pg.init()
-        self.screen = pg.display.set_mode(RESOLUTION)
+        self.screen = pg.display.set_mode(
+            size=RESOLUTION,
+            flags=pg.RESIZABLE
+        )
         pg.display.set_caption(CAPTION)
 
         self.nav_bar = None
@@ -39,13 +43,22 @@ class Game:
         self.loaded = None
         self.challenge = None
 
-        self.background = Game.get_texture(ASSETS_PATH / "background.png", RESOLUTION)
+        self.background = Game.get_texture(ASSETS_PATH / "background.png", self.screen.get_size())
         self.move_sound = pg.mixer.Sound(ASSETS_PATH / "move_sound.mp3")
 
-        self.gap = GAP
-        self.game_width, self.game_height = WIDTH - 2*self.gap, HEIGHT - 2*self.gap
-
         self.new_game(save=False)
+
+    @property
+    def gap(self):
+        return GAP * min(self.screen.get_size())
+
+    @property
+    def game_width(self):
+        return self.screen.get_width() - 2 * self.gap
+
+    @property
+    def game_height(self):
+        return self.screen.get_height() - 2 * self.gap
 
     @staticmethod
     def get_texture(path, size):
@@ -114,10 +127,15 @@ class Game:
         self.board.move_tracker = MoveTracker(self.board.grid)
 
     def draw(self):
-        # self.screen.fill(WHITE)
         self.screen.blit(self.background, (0, 0))
         self.board.draw()
         pg.display.flip()
+
+    def handle_screen_resize(self):
+        self.board.pos = (self.gap, self.gap)
+        self.board.size = (self.game_width, self.game_height)
+        self.board.resize()
+        self.background = Game.get_texture(ASSETS_PATH / "background.png", self.screen.get_size())
 
     def lift_ball(self):
         if ball := next((b for b in self.board.balls if b.check_collision(pg.mouse.get_pos())), None):
@@ -177,11 +195,13 @@ class Game:
                 messagebox.showerror("File Error", "Could not open this file.")
 
     def check_events(self):
-        for event in pg.event.get():
+        for event in (events := pg.event.get()):
             if event.type == pg.QUIT:
                 self.save_board_positions()
                 pg.quit()
                 exit()
+            if event.type == pg.WINDOWSIZECHANGED:
+                self.handle_screen_resize()
             if event.type == pg.MOUSEBUTTONDOWN and not self.lifted_ball:
                 self.lift_ball()
             if event.type == pg.MOUSEBUTTONUP and self.lifted_ball:

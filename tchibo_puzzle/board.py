@@ -1,10 +1,10 @@
 from random import choice
 
+from base_objects.circle_object import CircleObject
 from globals import *
 from structures.ball import Ball
-from base_objects.circle_object import CircleObject
-from structures.move_tracker import MoveTracker
 from structures.field import Field
+from structures.move_tracker import MoveTracker
 
 _ = None
 field_grid = [
@@ -27,34 +27,63 @@ def show_grid(g):
     print()
 
 
+class BallImg:
+    def __init__(self, path, img):
+        self.path = path
+        self.img = img
+
+
 class Board:
     def __init__(self, game, size=RESOLUTION, pos=(0, 0)):
         self.game = game
 
-        self.size = self.width, self.height = size
-        self.pos = self.x, self.y = pos
+        self.size = size
+        self.pos = pos
 
         self.grid = field_grid
         self.rows = len(self.grid)
         self.cols = len(self.grid[0])
 
-        self.radius = self.width / (self.cols*3 - 1)
-        self.diameter = 2 * self.radius
+        self.ball_images = None
+        self.set_images()
 
-        self.ball_images = [
-            self.game.get_texture(path, (self.diameter, self.diameter))
-            for path in (ASSETS_PATH / "Balls").glob("*.png")
-        ]
-
-        CircleObject.set_globals(self.radius, self.game)
+        CircleObject.game = self.game
         self.grid = self.__get_fields()
 
-        if not game.reversed:
+        if not self.game.reversed:
             self.set_balls()
         else:
             self.set_ball_center()
 
         self.move_tracker = MoveTracker(self.grid)
+
+    @property
+    def x(self):
+        return self.pos[0]
+
+    @property
+    def y(self):
+        return self.pos[1]
+
+    @property
+    def width(self):
+        return self.size[0]
+
+    @property
+    def height(self):
+        return self.size[1]
+
+    @property
+    def balls_area_side_len(self):
+        return min(self.size)
+
+    @property
+    def radius(self):
+        return self.balls_area_side_len / (self.cols * 3 - 1)
+
+    @property
+    def diameter(self):
+        return 2 * self.radius
 
     @property
     def fields(self):
@@ -68,6 +97,20 @@ class Board:
     def empty_fields(self):
         return [f for f in self.fields if not f.ball]
 
+    def set_images(self):
+        if self.ball_images:
+            for ball in self.ball_images:
+                ball.img = self.game.get_texture(ball.path, (self.diameter, self.diameter))
+            return
+
+        self.ball_images = [
+            BallImg(
+                path,
+                self.game.get_texture(path, (self.diameter, self.diameter))
+            )
+            for path in (ASSETS_PATH / "Balls").glob("*.png")
+        ]
+
     def set_balls(self):
         for i, field in enumerate(self.fields):
             if i == len(self.fields) // 2:  # skip center field
@@ -80,7 +123,8 @@ class Board:
             field.ball = Ball(field.pos, img=choice(self.ball_images))
 
     def __get_fields(self) -> list[list[Field]]:
-        start_x, start_y = self.x + self.radius, self.y + self.radius
+        start_x = self.x + self.radius + (self.width - self.balls_area_side_len) / 2
+        start_y = self.y + self.radius + (self.height - self.balls_area_side_len) / 2
         dist = self.radius * 3
 
         return [
@@ -90,6 +134,19 @@ class Board:
             ]
             for i, row in enumerate(self.grid)
         ]
+
+    def resize(self):
+        self.set_images()
+
+        start_x = self.x + self.radius + (self.width - self.balls_area_side_len) / 2
+        start_y = self.y + self.radius + (self.height - self.balls_area_side_len) / 2
+        dist = self.radius * 3
+
+        for row in self.grid:
+            for field in [f for f in row if f]:
+                field.pos = (start_x + dist*field.col, start_y + dist*field.row)
+                if ball := field.ball:
+                    ball.pos = field.pos
 
     def load_board(self, positions):
         for old, new in positions:

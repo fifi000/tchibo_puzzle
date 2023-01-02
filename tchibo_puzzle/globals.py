@@ -6,7 +6,7 @@ ASSETS_PATH = Path("assets")
 GAMES_PATH = Path("saved_games")
 CAPTION = "Tchibo Game"
 MIN_BALLS_TO_SAVE = 0.5
-GAP = 50
+GAP = 0.06
 
 # try loading settings from json file
 try:
