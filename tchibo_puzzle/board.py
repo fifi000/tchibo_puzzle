@@ -77,7 +77,7 @@ class Board(RectObject):
     def set_images(self):
         self.ball_images = {
             path: self.game.get_texture(path, (self.diameter, self.diameter))
-            for path in (list(self.ball_images.keys()) if self.ball_images else (ASSETS_PATH / "Balls").glob("*.png"))
+            for path in (list(self.ball_images.keys()) if self.ball_images else (ASSETS_PATH / "balls").glob("*.png"))
         }
 
     def set_balls(self):

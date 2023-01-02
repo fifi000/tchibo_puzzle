@@ -2,15 +2,23 @@ from base_objects.rect_object import RectObject
 
 
 class Button(RectObject):
-    def __init__(self, pos=(0, 0), size=(0, 0), img=None, action=None):
-        super(Button, self).__init__(pos, size)
+    game = None
 
-        self.img = img
+    def __init__(self, pos=(0, 0), img_name=None, action=None):
+        self.img_name = img_name
 
-        if self.img:
-            self.set_size(self.img.get_size())
+        super(Button, self).__init__(pos, self.img.get_size())
+
         if action:
             self.action = action
+
+    @property
+    def img(self):
+        # return self.game.board.ball_images[self.img_name]
+        return self.img_name
+
+    def draw(self):
+        self.game.screen.blit(self.img, self.pos)
 
     def action(self):
         pass

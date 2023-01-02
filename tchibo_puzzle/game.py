@@ -7,7 +7,9 @@ import pygame as pg
 from easygui import enterbox
 
 from board import Board
+from base_objects.button import Button
 from globals import *
+from container import VerticalContainer, HorizontalContainer
 from structures.move_tracker import MoveTracker
 
 
@@ -35,6 +37,7 @@ class Game:
             flags=pg.RESIZABLE
         )
         pg.display.set_caption(CAPTION)
+        Button.game = self
 
         self.nav_bar = None
         self.board = None
@@ -61,11 +64,35 @@ class Game:
         return self.screen.get_height() - 2 * self.gap
 
     @staticmethod
-    def get_texture(path, size):
-        return pg.transform.scale(pg.image.load(path).convert_alpha(), size)
+    def get_texture(path, size, rect_proportions=False):
+        img = pg.image.load(path).convert_alpha()
+        if rect_proportions:
+            k = max(img.get_size()) / max(size)
+            size = tuple(s/k for s in img.get_size())
+        return pg.transform.scale(img, size)
+
+    def set_nav_bar(self):
+        k = 0.9
+        size = tuple(int(self.nav_bar.height * k) for _ in range(2))
+        path = ASSETS_PATH / "nav_bar_emojis"
+        right_arrow = Game.get_texture(path / "right_arrow.png", size)
+        left_arrow = pg.transform.flip(right_arrow, True, False)
+        restart = Game.get_texture(path / "restart.png", size)
+        switch_off = Game.get_texture(path / "switch_off.png", size, True)
+        menu = Game.get_texture(path / "three_dots.png", size)
+
+        temp = VerticalContainer(size=(restart.get_width(), restart.get_height() + switch_off.get_height()))
+
+        # self.nav_bar.add_item(Button(img_name=switch_off), True)
+        self.nav_bar.add_item(temp, True)
+        self.nav_bar.add_item(Button(img_name=right_arrow, action=self.board.redo_move), True)
+        self.nav_bar.add_item(Button(img_name=left_arrow, action=self.board.undo_move), True)
+        self.nav_bar.add_item(Button(img_name=menu))
+
+        temp.add_item(Button(img_name=restart, action=self.new_game))
+        temp.add_item(Button(img_name=switch_off))
 
     def new_game(self, save=True):
-        # add method to reset board without whole new game
         self.lifted_ball = None
         if self.board and save:
             self.save_board_positions()
@@ -74,11 +101,20 @@ class Game:
         self.loaded = False
         self.challenge = False
 
-        # board setup
+        self.nav_bar = HorizontalContainer(
+            pos=(self.gap, self.gap/2),
+            size=(self.game_width, int(self.game_height*0.08))
+        )
+
         self.reset_board()
+        self.set_nav_bar()
 
     def reset_board(self):
-        self.board = Board(self, (self.game_width, self.game_height), (self.gap, self.gap))
+        self.board = Board(
+            self,
+            size=(self.game_width, self.game_height - self.nav_bar.height),
+            pos=(self.nav_bar.x, self.gap*1.5)
+        )
 
     def get_level(self):
         n = enterbox(
@@ -129,11 +165,20 @@ class Game:
     def draw(self):
         self.screen.blit(self.background, (0, 0))
         self.board.draw()
+        self.nav_bar.draw()
         pg.display.flip()
 
     def handle_screen_resize(self):
-        self.board.pos = (self.gap, self.gap)
-        self.board.size = (self.game_width, self.game_height)
+        # navbar
+        self.nav_bar = HorizontalContainer(
+            pos=(self.gap, self.gap/2),
+            size=(self.game_width, int(self.game_height*0.08))
+        )
+        self.set_nav_bar()
+
+        # board
+        self.board.pos = (self.nav_bar.x, self.gap*1.5)
+        self.board.size = (self.game_width, self.game_height - self.nav_bar.height)
         self.board.resize()
         self.background = Game.get_texture(ASSETS_PATH / "background.png", self.screen.get_size())
 
@@ -221,6 +266,8 @@ class Game:
                         self.challenge_mode(level)
                 if event.key == pg.K_h:
                     help_info()
+            if event.type == pg.MOUSEBUTTONDOWN:
+                self.nav_bar.check_collision(pg.mouse.get_pos())
 
     def run(self):
         while True:
