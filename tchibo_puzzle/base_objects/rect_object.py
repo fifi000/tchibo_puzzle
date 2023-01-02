@@ -2,14 +2,24 @@
 
 class RectObject:
     def __init__(self, pos, size):
-        self.set_pos(pos)
-        self.set_size(size)
+        self.pos = pos
+        self.size = size
 
-    def set_pos(self, pos):
-        self.pos = self.x, self.y = pos
+    @property
+    def x(self):
+        return self.pos[0]
 
-    def set_size(self, size):
-        self.size = self.width, self.height = size
+    @property
+    def y(self):
+        return self.pos[1]
+
+    @property
+    def width(self):
+        return self.size[0]
+
+    @property
+    def height(self):
+        return self.size[1]
 
     def check_collision(self, pos) -> bool:
         x, y = pos
