@@ -9,6 +9,7 @@ class NavigationBar(HorizontalContainer):
         super(NavigationBar, self).__init__(pos, size)
 
         self.game = game
+        self.folder_path = ASSETS_PATH / "nav_bar_emojis"
         self.button_images = None
         self.set_images()
 
@@ -16,26 +17,32 @@ class NavigationBar(HorizontalContainer):
     def button_size(self):
         return self.height, self.height
 
-    def resize(self):
-        print()
+    @property
+    def switch_img_name(self):
+        img = "switch_on.png" if self.game.challenge_mode else "switch_off.png"
+        return self.folder_path / img
 
     def init_buttons(self):
-        path = ASSETS_PATH / "nav_bar_emojis"
         board = self.game.board
 
-        self.right_arrow_btn = Button(img_name=path / "right_arrow.png", action=board.redo_move)
-        self.left_arrow_btn = Button(img_name=path / "left_arrow.png", action=board.undo_move)
-        self.restart_btn = Button(img_name=path / "restart.png", action=self.game.new_game)
-        self.switch_off_btn = Button(img_name=path / "switch_off.png", action=self.game.challenge_mode)
-        self.menu_btn = Button(img_name=path / "menu.png")
+        menu_btn = Button(img_name=self.folder_path / "menu.png")
+        left_arrow_btn = Button(img_name=self.folder_path / "left_arrow.png", action=board.undo_move)
+        right_arrow_btn = Button(img_name=self.folder_path / "right_arrow.png", action=board.redo_move)
+
+        restart_btn = Button(img_name=self.folder_path / "restart.png", action=self.game.restart)
+        switch_btn = Button(img_name=self.switch_img_name, action=self.game.change_mode)
+        stack = VerticalContainer(size=(restart_btn.width, restart_btn.height + switch_btn.height))
 
         # left
-        self.add_item(self.menu_btn)
+        self.add_item(menu_btn)
 
         # right
-        self.add_item(self.restart_btn, True)
-        self.add_item(self.right_arrow_btn, True)
-        self.add_item(self.left_arrow_btn, True)
+        self.add_item(stack, True)
+        self.add_item(right_arrow_btn, True)
+        self.add_item(left_arrow_btn, True)
+
+        stack.add_item(restart_btn)
+        stack.add_item(switch_btn)
 
     def set_images(self):
         self.button_images = {

@@ -45,17 +45,29 @@ class Game:
         self.lifted_ball = None
         self.reversed = None
         self.loaded = None
-        self.challenge = None
         self.container = None
 
+        self.challenge_mode = False
+
         self.background = Game.get_texture(ASSETS_PATH / "background.png", self.screen.get_size())
-        self.move_sound = pg.mixer.Sound(ASSETS_PATH / "move_sound.mp3")
+
+        sounds = (ASSETS_PATH / "sounds")
+        self.move_sound = pg.mixer.Sound(sounds / "move_sound.mp3")
+        self.switch_sound = pg.mixer.Sound(sounds / "switch_sound.wav")
 
         self.new_game(save=False)
 
     @property
     def gap(self):
         return GAP * min(self.screen.get_size())
+
+    @property
+    def board_size(self):
+        return self.game_width, self.game_height*0.92
+
+    @property
+    def nav_bar_size(self):
+        return self.game_width, self.game_height - self.board_size[1]
 
     @property
     def game_width(self):
@@ -68,9 +80,13 @@ class Game:
     @staticmethod
     def get_texture(path, size, rect_proportions=False):
         img = pg.image.load(path).convert_alpha()
+        return Game.resize_texture(img, size, rect_proportions)
+
+    @staticmethod
+    def resize_texture(img, size, rect_proportions=False):
         if rect_proportions:
             k = max(img.get_size()) / max(size)
-            size = tuple(s/k for s in img.get_size())
+            size = tuple(s / k for s in img.get_size())
         return pg.transform.scale(img, size)
 
     def new_game(self, save=True):
@@ -80,25 +96,27 @@ class Game:
 
         self.reversed = False
         self.loaded = False
-        self.challenge = False
+
+        self.board = Board(
+            self,
+            size=self.board_size
+        )
 
         self.handle_screen_resize()
 
     def set_container(self):
         self.container = VerticalContainer(
-            pos=(self.gap, self.gap/2),
+            pos=(self.gap, self.gap),
             size=(self.game_width, self.game_height),
         )
-        self.container.gap = self.gap/2
+        self.container.gap = self.gap
 
         self.nav_bar = NavigationBar(
             self,
             size=(self.game_width, int(self.game_height*0.08))
         )
-        self.board = Board(
-            self,
-            size=(self.game_width, int(self.game_height*0.9))
-        )
+
+        self.board.resize(self.board_size)
 
         self.container.add_items((self.nav_bar, self.board))
 
@@ -113,7 +131,7 @@ class Game:
         except:
             return None
 
-    def challenge_mode(self, level=10):
+    def set_challenge_mode(self, level=10):
         def is_valid_move(move):
             row, col = field.row + move[0], field.col + move[1]
             # grid boundary
@@ -131,7 +149,6 @@ class Game:
             return False
 
         self.new_game(save=False)
-        self.challenge = True
 
         # clear board
         for field in self.board.fields:
@@ -156,7 +173,7 @@ class Game:
     def handle_screen_resize(self):
         self.set_container()
 
-        self.board.resize()
+        self.board.resize(self.board_size)
         self.nav_bar.init_buttons()
 
         self.background = Game.get_texture(ASSETS_PATH / "background.png", self.screen.get_size())
@@ -185,7 +202,7 @@ class Game:
         # not challenge mode
         if (len(self.board.balls) / len(self.board.fields) > MIN_BALLS_TO_SAVE
                 or self.reversed
-                or self.challenge):
+                or self.challenge_mode):
             return
 
         # check if folder with saved games exists
@@ -218,6 +235,18 @@ class Game:
             except IOError:
                 messagebox.showerror("File Error", "Could not open this file.")
 
+    def restart(self):
+        if self.challenge_mode:
+            if level := self.get_level():
+                self.set_challenge_mode(level)
+        else:
+            self.new_game()
+
+    def change_mode(self):
+        self.switch_sound.play()
+        self.challenge_mode ^= True
+        self.handle_screen_resize()
+
     def check_events(self):
         for event in (events := pg.event.get()):
             if event.type == pg.QUIT:
@@ -232,8 +261,7 @@ class Game:
                 self.drop_ball()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_r:
-                    # if messagebox.askyesno("Restart Game", "Do you really want to restart?"):
-                    self.new_game()
+                    self.restart()
                 if event.key in [pg.K_LEFT, pg.K_a]:
                     self.board.undo_move()
                 if event.key in [pg.K_RIGHT, pg.K_d]:
@@ -241,8 +269,7 @@ class Game:
                 if event.key == pg.K_l:
                     self.load_game()
                 if event.key == pg.K_c:
-                    if level := self.get_level():
-                        self.challenge_mode(level)
+                    self.change_mode()
                 if event.key == pg.K_h:
                     help_info()
             if event.type == pg.MOUSEBUTTONDOWN:

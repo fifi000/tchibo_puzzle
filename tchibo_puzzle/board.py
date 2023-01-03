@@ -75,10 +75,16 @@ class Board(RectObject):
         return [f for f in self.fields if not f.ball]
 
     def set_images(self):
+        # if not self.ball_images:
         self.ball_images = {
             path: self.game.get_texture(path, (self.diameter, self.diameter))
             for path in (list(self.ball_images.keys()) if self.ball_images else (ASSETS_PATH / "balls").glob("*.png"))
         }
+        # else:
+        #     self.ball_images = {
+        #         path: self.game.resize_texture(img, (self.diameter, self.diameter))
+        #         for path, img in self.ball_images.items()
+        #     }
 
     def set_balls(self):
         for i, field in enumerate(self.fields):
@@ -103,7 +109,8 @@ class Board(RectObject):
             for i, row in enumerate(self.grid)
         ]
 
-    def resize(self):
+    def resize(self, size):
+        self.size = size
         self.set_images()
 
         start_x = self.x + self.radius + (self.width - self.balls_area_side_len) / 2
