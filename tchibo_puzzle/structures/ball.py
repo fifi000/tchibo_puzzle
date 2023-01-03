@@ -1,7 +1,7 @@
 import pygame as pg
 
-from base_objects.circle_object import CircleObject
 from globals import BLACK
+from structures.base_objects.circle_object import CircleObject
 
 
 class Ball(CircleObject):
@@ -25,4 +25,3 @@ class Ball(CircleObject):
 
     def __copy__(self):
         return self.__class__(self.pos, self.color)
-

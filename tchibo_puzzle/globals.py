@@ -25,7 +25,7 @@ except IOError:
 
 # colors
 WHITE = (255, 255, 255)
-GRAY = tuple((int(n*0.4) for n in WHITE))
+GRAY = tuple((int(n * 0.4) for n in WHITE))
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -34,5 +34,3 @@ PINK = (255, 182, 193)
 
 EMPTY_FIELD = "_"
 FILLED_FIELD = "O"
-
-

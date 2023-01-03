@@ -7,10 +7,10 @@ import pygame as pg
 from easygui import enterbox
 
 from board import Board
-from base_objects.button import Button
+from container import VerticalContainer
 from globals import *
-from container import VerticalContainer, HorizontalContainer
 from navigation_bar import NavigationBar
+from structures.button import Button
 from structures.move_tracker import MoveTracker
 
 
@@ -63,7 +63,7 @@ class Game:
 
     @property
     def board_size(self):
-        return self.game_width, self.game_height*0.92
+        return self.game_width, self.game_height * 0.92
 
     @property
     def nav_bar_size(self):
@@ -113,7 +113,7 @@ class Game:
 
         self.nav_bar = NavigationBar(
             self,
-            size=(self.game_width, int(self.game_height*0.08))
+            size=(self.game_width, int(self.game_height * 0.08))
         )
 
         self.board.resize(self.board_size)
@@ -137,7 +137,9 @@ class Game:
             # grid boundary
             if 0 <= row <= len(self.board.grid) - 1 and 0 <= col <= len(self.board.grid[0]) - 1:
                 # validate field
-                if (new_field := self.board.grid[row][col]) and not new_field.ball and self.board.move_ball(field, new_field, reversed_move=True):
+                if (new_field := self.board.grid[row][col]) and not new_field.ball and self.board.move_ball(field,
+                                                                                                            new_field,
+                                                                                                            reversed_move=True):
                     return True
             return False
 
@@ -223,9 +225,9 @@ class Game:
 
     def load_game(self):
         if path := filedialog.askopenfilename(
-            title="File to load",
-            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
-            initialdir=GAMES_PATH
+                title="File to load",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                initialdir=GAMES_PATH
         ):
             try:
                 with open(path, "rb") as file:

@@ -1,7 +1,7 @@
 import pygame as pg
 
-from base_objects.circle_object import CircleObject
 from globals import *
+from structures.base_objects.circle_object import CircleObject
 
 
 class Field(CircleObject):
@@ -16,7 +16,7 @@ class Field(CircleObject):
 
         # draw transparent circle
         circle_color = WHITE if not self.ball else GRAY
-        surface = pg.Surface((self.radius*2, self.radius*2))
+        surface = pg.Surface((self.radius * 2, self.radius * 2))
         surface.set_colorkey((0, 0, 0))
         surface.set_alpha(100)
         pg.draw.circle(surface, circle_color, (self.radius, self.radius), self.radius)

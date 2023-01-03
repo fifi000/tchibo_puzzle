@@ -1,9 +1,9 @@
 from random import choice
 
-from base_objects.circle_object import CircleObject
-from base_objects.rect_object import RectObject
 from globals import *
 from structures.ball import Ball
+from structures.base_objects.circle_object import CircleObject
+from structures.base_objects.rect_object import RectObject
 from structures.field import Field
 from structures.move_tracker import MoveTracker
 
@@ -103,7 +103,7 @@ class Board(RectObject):
 
         return [
             [
-                Field((start_x + dist*j, start_y + dist*i), i, j) if cell else None
+                Field((start_x + dist * j, start_y + dist * i), i, j) if cell else None
                 for j, cell in enumerate(row)
             ]
             for i, row in enumerate(self.grid)
@@ -119,7 +119,7 @@ class Board(RectObject):
 
         for row in self.grid:
             for field in [f for f in row if f]:
-                field.pos = (start_x + dist*field.col, start_y + dist*field.row)
+                field.pos = (start_x + dist * field.col, start_y + dist * field.row)
                 if ball := field.ball:
                     ball.pos = field.pos
 
@@ -160,11 +160,11 @@ class Board(RectObject):
         output = False
         # same row and 2 columns apart
         if new_field.row == old_field.row and abs(new_field.col - old_field.col) == 2:
-            output = handle_middle_ball(new_field.row, (old_field.col + new_field.col)//2)
+            output = handle_middle_ball(new_field.row, (old_field.col + new_field.col) // 2)
 
         # same column and 2 rows apart
         if new_field.col == old_field.col and abs(new_field.row - old_field.row) == 2:
-            output = handle_middle_ball((old_field.row + new_field.row)//2, new_field.col)
+            output = handle_middle_ball((old_field.row + new_field.row) // 2, new_field.col)
 
         if output:
             self.move_tracker.add_move(self.grid)

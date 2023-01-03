@@ -21,4 +21,3 @@ class Button(RectObject):
 
     def action(self):
         pass
-

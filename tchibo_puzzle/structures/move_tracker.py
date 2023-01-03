@@ -1,5 +1,3 @@
-
-
 class MoveTracker:
     def __init__(self, init_grid):
         self.moves = [MoveTracker.copy_grid(init_grid)]

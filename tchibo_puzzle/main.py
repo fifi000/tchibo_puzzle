@@ -1,5 +1,3 @@
-
-
 if __name__ == '__main__':
     from game import Game
     import pygame as pg
@@ -10,4 +8,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         game.save_board_positions()
         pg.quit()
-

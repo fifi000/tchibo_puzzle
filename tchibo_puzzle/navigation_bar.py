@@ -1,7 +1,6 @@
-from base_objects.button import Button
-from base_objects.rect_object import RectObject
-from globals import *
 from container import VerticalContainer, HorizontalContainer
+from globals import *
+from structures.button import Button
 
 
 class NavigationBar(HorizontalContainer):
@@ -47,5 +46,6 @@ class NavigationBar(HorizontalContainer):
     def set_images(self):
         self.button_images = {
             path: self.game.get_texture(path, self.button_size, True)
-            for path in (list(self.button_images.keys()) if self.button_images else (ASSETS_PATH / "nav_bar_emojis").glob("*.png"))
+            for path in
+            (list(self.button_images.keys()) if self.button_images else (ASSETS_PATH / "nav_bar_emojis").glob("*.png"))
         }
