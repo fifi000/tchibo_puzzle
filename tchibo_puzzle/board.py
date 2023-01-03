@@ -48,7 +48,7 @@ class Board(RectObject):
         else:
             self.set_ball_center()
 
-        self.move_tracker = MoveTracker(self.grid)
+        self.move_tracker = None
 
     @property
     def balls_area_side_len(self):
@@ -149,6 +149,9 @@ class Board(RectObject):
                 old_field.ball = None
                 return True
             return False
+
+        if not self.move_tracker:
+            self.move_tracker = MoveTracker(self.grid)
 
         if self.game.reversed or reversed_move:
             handle_middle_ball = handle_middle_ball_reversed
