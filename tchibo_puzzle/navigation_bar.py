@@ -9,6 +9,9 @@ class NavigationBar(HorizontalContainer):
 
         self.game = game
         self.folder_path = ASSETS_PATH / "nav_bar_emojis"
+
+        self.gap = 30
+
         self.button_images = None
         self.set_images()
 

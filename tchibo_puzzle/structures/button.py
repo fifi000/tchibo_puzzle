@@ -1,4 +1,4 @@
-from base_objects.rect_object import RectObject
+from structures.base_objects.rect_object import RectObject
 
 
 class Button(RectObject):

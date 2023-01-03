@@ -54,6 +54,7 @@ class Game:
         sounds = (ASSETS_PATH / "sounds")
         self.move_sound = pg.mixer.Sound(sounds / "move_sound.mp3")
         self.switch_sound = pg.mixer.Sound(sounds / "switch_sound.wav")
+        self.switch_sound.set_volume(0.1)
 
         self.new_game(save=False)
 
