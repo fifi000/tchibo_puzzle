@@ -97,6 +97,7 @@ class Game:
 
         self.reversed = False
         self.loaded = False
+        self.challenge_mode = False
 
         self.board = Board(
             self,
@@ -122,17 +123,20 @@ class Game:
         self.container.add_items((self.nav_bar, self.board))
 
     def get_level(self):
-        n = enterbox(
+        level = enterbox(
             title="Level",
             msg="Enter balls number [2-32]",
             default="10"
         )
         try:
-            return max(int(n), 2) % len(self.board.fields) - 1
+            return max(int(level), 2) % len(self.board.fields) - 1
         except:
             return None
 
-    def set_challenge_mode(self, level=10):
+    def set_challenge_mode(self):
+        if not (level := self.get_level()):
+            return
+
         def is_valid_move(move):
             row, col = field.row + move[0], field.col + move[1]
             # grid boundary
@@ -152,6 +156,7 @@ class Game:
             return False
 
         self.new_game(save=False)
+        self.challenge_mode = True
 
         # clear board
         for field in self.board.fields:
