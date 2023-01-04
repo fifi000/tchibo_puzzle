@@ -52,7 +52,7 @@ class VerticalContainer(Container):
     def add_item(self, item, reverse_order=False):
         item.x = self.x + (self.width - item.width) / 2
         if not reverse_order:
-            item.y = self.group1[-1].height + self.gap if self.group1 else self.y
+            item.y = self.group1[-1].y + self.group1[-1].height + self.gap if self.group1 else self.y
             self.group1.append(item)
         else:
             item.y = self.group2[-1].y - self.gap - item.height if self.group2 else self.y + self.height - item.height

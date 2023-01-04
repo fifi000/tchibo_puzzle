@@ -48,7 +48,7 @@ class Board(RectObject):
         else:
             self.set_ball_center()
 
-        self.move_tracker = None
+        self.move_tracker = MoveTracker(self.grid)
 
     @property
     def balls_area_side_len(self):
@@ -75,16 +75,10 @@ class Board(RectObject):
         return [f for f in self.fields if not f.ball]
 
     def set_images(self):
-        # if not self.ball_images:
         self.ball_images = {
             path: self.game.get_texture(path, (self.diameter, self.diameter))
             for path in (list(self.ball_images.keys()) if self.ball_images else (ASSETS_PATH / "balls").glob("*.png"))
         }
-        # else:
-        #     self.ball_images = {
-        #         path: self.game.resize_texture(img, (self.diameter, self.diameter))
-        #         for path, img in self.ball_images.items()
-        #     }
 
     def set_balls(self):
         for i, field in enumerate(self.fields):
@@ -150,9 +144,6 @@ class Board(RectObject):
                 return True
             return False
 
-        if not self.move_tracker:
-            self.move_tracker = MoveTracker(self.grid)
-
         if self.game.reversed or reversed_move:
             handle_middle_ball = handle_middle_ball_reversed
 
@@ -175,15 +166,24 @@ class Board(RectObject):
 
         return output
 
+    def __change_move(self, grid):
+        for old_row, new_row in zip(self.grid, grid):
+            for old_field, new_field in zip(old_row, new_row):
+                if not old_field and not new_field:
+                    continue
+                if old_field.ball and not new_field.ball:
+                    old_field.ball = None
+                elif not old_field.ball and new_field.ball:
+                    old_field.add_ball(Ball(color=new_field.ball.color))
+        self.game.move_sound.play()
+
     def redo_move(self):
         if grid := self.move_tracker.redo_move():
-            self.grid = grid
-            self.game.move_sound.play()
+            self.__change_move(grid)
 
     def undo_move(self):
         if grid := self.move_tracker.undo_move():
-            self.grid = grid
-            self.game.move_sound.play()
+            self.__change_move(grid)
 
     def draw(self):
         for field in self.fields:

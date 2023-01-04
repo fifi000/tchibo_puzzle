@@ -1,6 +1,12 @@
+import pygame as pg
+
 from container import VerticalContainer, HorizontalContainer
 from globals import *
 from structures.button import Button
+
+
+def get_text(text: str):
+    return pg.font.SysFont("consolas", 24).render(text, True, WHITE, BLACK)
 
 
 class NavigationBar(HorizontalContainer):
@@ -31,20 +37,23 @@ class NavigationBar(HorizontalContainer):
         left_arrow_btn = Button(img_name=self.folder_path / "left_arrow.png", action=board.undo_move)
         right_arrow_btn = Button(img_name=self.folder_path / "right_arrow.png", action=board.redo_move)
 
-        restart_btn = Button(img_name=self.folder_path / "restart.png", action=self.game.restart)
-        switch_btn = Button(img_name=self.switch_img_name, action=self.game.change_mode)
-        stack = VerticalContainer(size=(restart_btn.width, restart_btn.height + switch_btn.height))
+        # switch_btn = Button(img_name=self.switch_img_name, action=self.game.change_mode)
+        # stack = VerticalContainer(size=(restart_btn.width, restart_btn.height + switch_btn.height))
+        restart_btn = Button(img_name=self.folder_path / "restart.png", action=self.game.new_game)
+        puzzle_btn = Button(img_name=self.folder_path / "puzzle.png", action=self.game.set_challenge_mode)
 
         # left
         self.add_item(menu_btn)
 
         # right
-        self.add_item(stack, True)
+        # self.add_item(stack, True)
+        self.add_item(restart_btn, True)
+        self.add_item(puzzle_btn, True)
         self.add_item(right_arrow_btn, True)
         self.add_item(left_arrow_btn, True)
 
-        stack.add_item(restart_btn)
-        stack.add_item(switch_btn)
+        # stack.add_item(restart_btn)
+        # stack.add_item(switch_btn)
 
     def set_images(self):
         self.button_images = {
@@ -52,3 +61,5 @@ class NavigationBar(HorizontalContainer):
             for path in
             (list(self.button_images.keys()) if self.button_images else (ASSETS_PATH / "nav_bar_emojis").glob("*.png"))
         }
+
+
