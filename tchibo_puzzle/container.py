@@ -18,6 +18,15 @@ class Container(RectObject):
         for item in self.items:
             item.draw()
 
+    def draw_center(self):
+        width = sum([item.width for item in self.items]) + self.gap * (len(self.items) - 1)
+        start_x = self.x + (self.width - width)/2
+
+        for item in self.items:
+            item.x = start_x
+            item.draw()
+            start_x += item.width + self.gap
+
     def add_item(self, item, reverse_order=False):
         pass
 

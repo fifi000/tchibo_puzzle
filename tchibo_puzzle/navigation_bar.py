@@ -16,7 +16,7 @@ class NavigationBar(HorizontalContainer):
         self.game = game
         self.folder_path = ASSETS_PATH / "nav_bar_emojis"
 
-        self.gap = 30
+        self.gap = 50
 
         self.button_images = None
         self.set_images()
@@ -33,20 +33,16 @@ class NavigationBar(HorizontalContainer):
     def init_buttons(self):
         board = self.game.board
 
-        menu_btn = Button(img_name=self.folder_path / "menu.png")
         left_arrow_btn = Button(img_name=self.folder_path / "left_arrow.png", action=board.undo_move)
         right_arrow_btn = Button(img_name=self.folder_path / "right_arrow.png", action=board.redo_move)
         restart_btn = Button(img_name=self.folder_path / "restart.png", action=self.game.new_game)
         puzzle_btn = Button(img_name=self.folder_path / "puzzle.png", action=self.game.set_challenge_mode)
 
         # left
-        self.add_item(menu_btn)
-
-        # right
-        self.add_item(restart_btn, True)
-        self.add_item(puzzle_btn, True)
-        self.add_item(right_arrow_btn, True)
-        self.add_item(left_arrow_btn, True)
+        self.add_item(left_arrow_btn)
+        self.add_item(right_arrow_btn)
+        self.add_item(puzzle_btn)
+        self.add_item(restart_btn)
 
     def set_images(self):
         self.button_images = {
@@ -55,4 +51,5 @@ class NavigationBar(HorizontalContainer):
             (list(self.button_images.keys()) if self.button_images else (ASSETS_PATH / "nav_bar_emojis").glob("*.png"))
         }
 
-
+    def draw(self):
+        self.draw_center()
