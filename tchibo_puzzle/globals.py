@@ -7,6 +7,7 @@ GAMES_PATH = Path("saved_games")
 CAPTION = "Tchibo Game"
 MIN_BALLS_TO_SAVE = 0.5
 GAP = 0.06
+BOARD_PERCENTAGE = 0.95
 
 # try loading settings from json file
 try:
@@ -20,6 +21,7 @@ try:
         CAPTION = _settings["caption"]
         MIN_BALLS_TO_SAVE = _settings["minBallsToSave"]
         GAP = _settings["boardGap"]
+        BOARD_PERCENTAGE = _settings["boardPercentage"]
 except IOError:
     pass
 

@@ -64,7 +64,7 @@ class Game:
 
     @property
     def board_size(self):
-        return self.game_width, self.game_height * 0.95
+        return self.game_width, self.game_height * BOARD_PERCENTAGE
 
     @property
     def nav_bar_size(self):
