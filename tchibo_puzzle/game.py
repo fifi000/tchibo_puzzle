@@ -7,10 +7,10 @@ import pygame as pg
 from easygui import enterbox
 
 from board import Board
-from structures.container import VerticalContainer
 from globals import *
 from navigation_bar import NavigationBar
 from structures.button import Button
+from structures.container import VerticalContainer
 from structures.move_tracker import MoveTracker
 
 

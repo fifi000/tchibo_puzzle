@@ -1,8 +1,8 @@
 import pygame as pg
 
-from structures.container import HorizontalContainer
 from globals import *
 from structures.button import Button
+from structures.container import HorizontalContainer
 
 
 def get_text(text: str):
