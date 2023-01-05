@@ -20,7 +20,7 @@ def help_info():
         "A / left-arrow - undo",
         "D / right-arrow - redo",
         "P - puzzle mode",
-        "R - rush mode"
+        "R - rush mode",
         "N - new game",
         "L - load game to analise",
     ]
@@ -221,7 +221,7 @@ class Game:
             self.set_rush_mode()
 
     def start_rush_mode(self):
-        self.rush_mode_level = 2
+        self.rush_mode = False
         self.set_rush_mode()
 
     def set_rush_mode(self):
