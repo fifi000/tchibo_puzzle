@@ -7,7 +7,7 @@ import pygame as pg
 from easygui import enterbox
 
 from board import Board
-from container import VerticalContainer
+from structures.container import VerticalContainer
 from globals import *
 from navigation_bar import NavigationBar
 from structures.button import Button
@@ -19,8 +19,9 @@ def help_info():
         "H - help info",
         "A / left-arrow - undo",
         "D / right-arrow - redo",
-        "C - challenge mode",
-        "R - new game",
+        "P - puzzle mode",
+        "R - rush mode"
+        "N - new game",
         "L - load game to analise",
     ]
     text = "\n".join([s for s in li])
@@ -37,7 +38,10 @@ class Game:
             size=RESOLUTION,
             flags=pg.RESIZABLE
         )
-        pg.display.set_caption(CAPTION)
+
+        self.caption = CAPTION
+        pg.display.set_caption(self.caption)
+
         Button.game = self
 
         self.nav_bar = None
@@ -47,7 +51,10 @@ class Game:
         self.loaded = None
         self.container = None
 
-        self.challenge_mode = False
+        self.puzzle_mode = False
+
+        self.rush_mode = False
+        self.rush_mode_level = 2
 
         self.background = Game.get_texture(ASSETS_PATH / "background.png", self.screen.get_size())
 
@@ -76,7 +83,7 @@ class Game:
 
     @property
     def game_height(self):
-        return self.screen.get_height() - 2.5 * self.gap
+        return self.screen.get_height() - 3 * self.gap
 
     @staticmethod
     def get_texture(path, size, rect_proportions=False):
@@ -91,13 +98,16 @@ class Game:
         return pg.transform.scale(img, size)
 
     def new_game(self, save=True):
+        pg.display.set_caption(self.caption)
+
         self.lifted_ball = None
         if self.board and save:
             self.save_board_positions()
 
         self.reversed = False
         self.loaded = False
-        self.challenge_mode = False
+        self.puzzle_mode = False
+        self.rush_mode = False
 
         self.board = Board(
             self,
@@ -111,7 +121,7 @@ class Game:
             pos=(self.gap, self.gap),
             size=(self.game_width, self.game_height),
         )
-        self.container.gap = self.gap/2
+        self.container.gap = self.gap
 
         self.nav_bar = NavigationBar(
             self,
@@ -129,12 +139,12 @@ class Game:
             default="10"
         )
         try:
-            return max(int(level), 2) % len(self.board.fields) - 1
-        except:
+            return max(int(level), 2) % (len(self.board.fields) - 1)
+        except (TypeError, ValueError, ZeroDivisionError):
             return None
 
-    def set_challenge_mode(self):
-        if not (level := self.get_level()):
+    def set_puzzle_mode(self, level=None):
+        if not level and not (level := self.get_level()):
             return
 
         def is_valid_move(move):
@@ -142,9 +152,11 @@ class Game:
             # grid boundary
             if 0 <= row <= len(self.board.grid) - 1 and 0 <= col <= len(self.board.grid[0]) - 1:
                 # validate field
-                if (new_field := self.board.grid[row][col]) and not new_field.ball and self.board.move_ball(field,
-                                                                                                            new_field,
-                                                                                                            reversed_move=True):
+                if (
+                        (new_field := self.board.grid[row][col])
+                        and not new_field.ball
+                        and self.board.move_ball(field, new_field, reversed_move=True)
+                ):
                     return True
             return False
 
@@ -156,7 +168,7 @@ class Game:
             return False
 
         self.new_game(save=False)
-        self.challenge_mode = True
+        self.puzzle_mode = True
 
         # clear board
         for field in self.board.fields:
@@ -165,7 +177,7 @@ class Game:
 
         # choose random ball
         # if has valid move -> move there
-        for _ in range(level):
+        for _ in range(level - 1):
             for field in sorted([f for f in self.board.fields if f.ball], key=lambda x: random()):
                 if try_move():
                     break
@@ -204,13 +216,30 @@ class Game:
         self.lifted_ball.clicked = False
         self.lifted_ball = None
 
+        if self.rush_mode and len(self.board.balls) == 1:
+            self.draw()
+            self.set_rush_mode()
+
+    def start_rush_mode(self):
+        self.rush_mode_level = 2
+        self.set_rush_mode()
+
+    def set_rush_mode(self):
+        if self.rush_mode:
+            self.rush_mode_level += 1
+        else:
+            self.rush_mode_level = 2
+        self.set_puzzle_mode(self.rush_mode_level)
+        pg.display.set_caption(f"{self.caption} - Rush Mode level {self.rush_mode_level}")
+        self.rush_mode = True
+
     def save_board_positions(self):
         # save only if at least half of the board is empty
         # game is not reversed
-        # not challenge mode
+        # not puzzle mode
         if (len(self.board.balls) / len(self.board.fields) > MIN_BALLS_TO_SAVE
                 or self.reversed
-                or self.challenge_mode):
+                or self.puzzle_mode):
             return
 
         # check if folder with saved games exists
@@ -256,7 +285,7 @@ class Game:
             if event.type == pg.MOUSEBUTTONUP and self.lifted_ball:
                 self.drop_ball()
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_r:
+                if event.key == pg.K_n:
                     self.new_game()
                 if event.key in [pg.K_LEFT, pg.K_a]:
                     self.board.undo_move()
@@ -264,10 +293,12 @@ class Game:
                     self.board.redo_move()
                 if event.key == pg.K_l:
                     self.load_game()
-                if event.key == pg.K_c:
-                    self.set_challenge_mode()
+                if event.key == pg.K_p:
+                    self.set_puzzle_mode()
                 if event.key == pg.K_h:
                     help_info()
+                if event.key == pg.K_r:
+                    self.start_rush_mode()
             if event.type == pg.MOUSEBUTTONDOWN:
                 self.nav_bar.check_collision(pg.mouse.get_pos())
 

@@ -1,6 +1,6 @@
 import pygame as pg
 
-from container import HorizontalContainer
+from structures.container import HorizontalContainer
 from globals import *
 from structures.button import Button
 
@@ -27,7 +27,7 @@ class NavigationBar(HorizontalContainer):
 
     @property
     def switch_img_name(self):
-        img = "switch_on.png" if self.game.challenge_mode else "switch_off.png"
+        img = "switch_on.png" if self.game.puzzle_mode else "switch_off.png"
         return self.folder_path / img
 
     def init_buttons(self):
@@ -35,13 +35,15 @@ class NavigationBar(HorizontalContainer):
 
         left_arrow_btn = Button(img_name=self.folder_path / "left_arrow.png", action=board.undo_move)
         right_arrow_btn = Button(img_name=self.folder_path / "right_arrow.png", action=board.redo_move)
+        puzzle_btn = Button(img_name=self.folder_path / "puzzle.png", action=self.game.set_puzzle_mode)
+        rush_btn = Button(img_name=self.folder_path / "fire.png", action=self.game.start_rush_mode)
         restart_btn = Button(img_name=self.folder_path / "restart.png", action=self.game.new_game)
-        puzzle_btn = Button(img_name=self.folder_path / "puzzle.png", action=self.game.set_challenge_mode)
 
         # left
         self.add_item(left_arrow_btn)
         self.add_item(right_arrow_btn)
         self.add_item(puzzle_btn)
+        self.add_item(rush_btn)
         self.add_item(restart_btn)
 
     def set_images(self):

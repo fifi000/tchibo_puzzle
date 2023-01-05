@@ -178,11 +178,11 @@ class Board(RectObject):
         self.game.move_sound.play()
 
     def redo_move(self):
-        if grid := self.move_tracker.redo_move():
+        if not self.game.rush_mode and (grid := self.move_tracker.redo_move()):
             self.__change_move(grid)
 
     def undo_move(self):
-        if grid := self.move_tracker.undo_move():
+        if not self.game.rush_mode and (grid := self.move_tracker.undo_move()):
             self.__change_move(grid)
 
     def draw(self):
