@@ -54,6 +54,6 @@ class RectObject:
     def check_collision(self, pos) -> bool:
         x, y = pos
         return (
-                self.x <= x <= self.x + self.width and
-                self.y <= y <= self.y + self.height
+                self.x <= x <= self.x + self.width
+                and self.y <= y <= self.y + self.height
         )

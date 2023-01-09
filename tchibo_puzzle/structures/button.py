@@ -14,10 +14,11 @@ class Button(RectObject):
 
     @property
     def img(self):
-        return self.game.nav_bar.button_images[self.img_name]
+        return self.game.nav_bar.button_images.get(self.img_name, None)
 
     def draw(self):
-        self.game.screen.blit(self.img, self.pos)
+        if img := self.img:
+            self.game.screen.blit(img, self.pos)
 
     def action(self):
         pass
