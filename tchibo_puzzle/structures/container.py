@@ -19,16 +19,10 @@ class Container(RectObject):
             item.draw()
 
     def draw_center(self):
-        width = sum([item.width for item in self.items]) + self.gap * (len(self.items) - 1)
-        start_x = self.x + (self.width - width)/2
-
-        for item in self.items:
-            item.x = start_x
-            item.draw()
-            start_x += item.width + self.gap
+        raise NotImplementedError
 
     def add_item(self, item, reverse_order=False):
-        pass
+        raise NotImplementedError
 
     def add_items(self, items, reverse_order=False):
         for item in items:
@@ -53,6 +47,15 @@ class HorizontalContainer(Container):
             item.x = self.group2[-1].x - self.gap - item.width if self.group2 else self.x + self.width - item.width
             self.group2.append(item)
 
+    def draw_center(self):
+        width = sum([item.width for item in self.items]) + self.gap * (len(self.items) - 1)
+        start_x = self.x + (self.width - width)/2
+
+        for item in self.items:
+            item.x = start_x
+            item.draw()
+            start_x += item.width + self.gap
+
 
 class VerticalContainer(Container):
     def __init__(self, pos=(0, 0), size=(0, 0)):
@@ -66,3 +69,6 @@ class VerticalContainer(Container):
         else:
             item.y = self.group2[-1].y - self.gap - item.height if self.group2 else self.y + self.height - item.height
             self.group2.append(item)
+
+    def draw_center(self):
+        self.draw()
