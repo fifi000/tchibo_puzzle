@@ -12,9 +12,7 @@ class Field(CircleObject):
         self.ball = ball
 
     def draw(self):
-        # pg.draw.circle(Field.game.screen, WHITE, self.pos, self.radius)
-
-        # draw transparent circle
+        # draw transparent circle - darker under balls
         circle_color = WHITE if not self.ball else GRAY
         surface = pg.Surface((self.radius * 2, self.radius * 2))
         surface.set_colorkey((0, 0, 0))

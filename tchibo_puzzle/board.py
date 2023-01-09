@@ -111,11 +111,10 @@ class Board(RectObject):
         start_y = self.y + self.radius + (self.height - self.balls_area_side_len) / 2
         dist = self.radius * 3
 
-        for row in self.grid:
-            for field in [f for f in row if f]:
-                field.pos = (start_x + dist * field.col, start_y + dist * field.row)
-                if ball := field.ball:
-                    ball.pos = field.pos
+        for field in self.fields:
+            field.pos = (start_x + dist * field.col, start_y + dist * field.row)
+            if ball := field.ball:
+                ball.pos = field.pos
 
     def load_board(self, positions):
         for old, new in positions:
@@ -152,6 +151,7 @@ class Board(RectObject):
             return False
 
         output = False
+
         # same row and 2 columns apart
         if new_field.row == old_field.row and abs(new_field.col - old_field.col) == 2:
             output = handle_middle_ball(new_field.row, (old_field.col + new_field.col) // 2)
