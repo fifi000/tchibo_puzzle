@@ -185,7 +185,7 @@ class Game:
 
     def draw(self):
         self.screen.blit(self.background, (0, 0))
-        self.container.draw()
+        self.container.draw_center()
         pg.display.flip()
 
     def handle_screen_resize(self):
