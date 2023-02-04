@@ -283,6 +283,11 @@ class Game:
             if event.type == pg.MOUSEBUTTONUP and self.lifted_ball:
                 self.drop_ball()
             if event.type == pg.KEYDOWN:
+                # with pressed X key enables user to hoover over
+                # a ball and remove it
+                if event.key == pg.K_x:
+                    if field := next((f for f in self.board.fields if f.check_collision(pg.mouse.get_pos())), None):
+                        field.ball = None
                 if event.key == pg.K_n:
                     self.new_game()
                 if event.key in [pg.K_LEFT, pg.K_a]:
