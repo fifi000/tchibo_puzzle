@@ -8,7 +8,7 @@ from structures.field import Field
 from structures.move_tracker import MoveTracker
 
 _ = None
-field_grid = [
+filled_grid = [
     [_, _, 1, 1, 1, _, _],
     [_, _, 1, 1, 1, _, _],
     [1, 1, 1, 1, 1, 1, 1],
@@ -33,7 +33,7 @@ class Board(RectObject):
         super(Board, self).__init__(pos, size)
         self.game = game
 
-        self.grid = field_grid
+        self.grid = filled_grid
         self.rows = len(self.grid)
         self.cols = len(self.grid[0])
 
