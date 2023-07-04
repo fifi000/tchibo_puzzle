@@ -1,6 +1,10 @@
 # tchibo_puzzle
 The game is based on a physical one bought in Tchibo store. The original puzzle consists of a wooden board with a set of colorful marble balls.
 
+## Screenshots
+![](/readme_img/game_overview.png)
+![](/readme_img/puzzle_mode.png)
+
 ## Rules
 The pieces move according to the rules of Checkers, where you can jump over another piece only if the space behind it is free. The main goal is to end up with a single ball in the center.
 
@@ -10,6 +14,7 @@ The pieces move according to the rules of Checkers, where you can jump over anot
 * Puzzle Mode 🧩 - This mode allows you to specify the number of balls you start with and play similarly to the normal mode.
 
 In both Rush Mode 🔥 and Puzzle Mode 🧩 you are guaranteed that the board is solvable thanks to the algorithim that sets the balls. The algorithim starts with a single ball in the center and makes reverse moves, moving a piece 2 fields away and adding a ball between the fields. Here is an example of moving a ball 2 units to the right: 'O - -' --> '- O O'
+Since the algorithim makes random moves when creating the board (in special modes) there is no guarantee that e.g. at the level 30 during Rush Mode 🔥 there will be 30 balls because there may not be any valid move to put more balls using the decribed above rule.
 
 ## Game Control
 * Undo/Redo
